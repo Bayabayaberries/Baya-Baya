@@ -3,7 +3,7 @@
 
 const catalog = {
   arandanos: {
-    label: '🫐 Arándanos — Baya Baya Berries',
+    label: '🫐 Baya Baya Berries',
     brand: 'Baya Baya Berries',
     items: [
       { id: 'ar_125', name: 'Arándanos 125g', price: 9000 },
