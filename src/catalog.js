@@ -3,26 +3,30 @@
 
 const catalog = {
   arandanos: {
-    label: '🫐 Arándanos — Baya Baya',
-    brand: 'Baya Baya',
+    label: '🫐 Arándanos — Baya Baya Berries',
+    brand: 'Baya Baya Berries',
     items: [
-      { id: 'ar_250', name: 'Arándanos frescos 250g', price: 9900 },
-      { id: 'ar_500', name: 'Arándanos frescos 500g', price: 17900 },
-      { id: 'ar_1kg', name: 'Arándanos frescos 1kg', price: 32900 },
-      { id: 'ar_caja', name: 'Caja mayorista 5kg', price: 139900 },
+      { id: 'ar_125', name: 'Arándanos 125g', price: 9000 },
+      { id: 'ar_250', name: 'Arándanos 250g', price: 12600 },
+      { id: 'ar_500', name: 'Arándanos 500g', price: 35000 },
     ],
   },
   miel: {
-    label: '🍯 Miel — Oko',
-    brand: 'Oko',
+    label: '🍯 Miel — Oko Honey',
+    brand: 'Oko Honey',
     items: [
-      { id: 'mi_250', name: 'Miel pura 250ml', price: 15900 },
-      { id: 'mi_500', name: 'Miel pura 500ml', price: 27900 },
-      { id: 'mi_1l', name: 'Miel pura 1 litro', price: 49900 },
-      { id: 'mi_panal', name: 'Miel en panal 500g', price: 35900 },
+      { id: 'mi_pura_350', name: 'Miel Pura 350g', price: 25000 },
+      { id: 'mi_pura_482', name: 'Miel Pura 482g', price: 31000 },
+      { id: 'mi_picante_bajo', name: 'Miel Picante Bajo 350g', price: 27000 },
+      { id: 'mi_picante_medio', name: 'Miel Picante Medio 350g', price: 27000 },
+      { id: 'mi_picante_alto', name: 'Miel Picante Alto 350g', price: 27000 },
     ],
   },
 };
+
+// Costo del domicilio si la entrega es dentro de Medellín.
+// Fuera de Medellín, por ahora no se cobra automático (coordinar aparte).
+const SHIPPING_MEDELLIN = 5000;
 
 function findProduct(id) {
   for (const category of Object.values(catalog)) {
@@ -36,4 +40,4 @@ function formatCOP(n) {
   return '$' + n.toLocaleString('es-CO') + ' COP';
 }
 
-module.exports = { catalog, findProduct, formatCOP };
+module.exports = { catalog, findProduct, formatCOP, SHIPPING_MEDELLIN };
