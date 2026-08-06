@@ -22,8 +22,8 @@ async function setupIceBreakers() {
     body: JSON.stringify({
       enable_welcome_message: true,
       prompts: [
-        'Comprar arándanos de Baya Baya',
-        'Comprar miel de Oko',
+        'Comprar arándanos Baya Baya Berries',
+        'Comprar miel Oko Honey',
       ],
       // "commands" son atajos que aparecen cuando el cliente escribe "/"
       // dentro del chat. Son opcionales, pero útiles para clientes que ya
