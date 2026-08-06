@@ -1,10 +1,10 @@
-const { catalog, findProduct, formatCOP } = require('./catalog');
+const { catalog, findProduct, formatCOP, SHIPPING_MEDELLIN } = require('./catalog');
 const { getSession, saveSession, resetSession } = require('./session');
 const { sendText, sendButtons, sendList } = require('./whatsapp');
 const { createPaymentLink } = require('./wompi');
 
 async function showMainMenu(to) {
-  await sendButtons(to, '¡Hola! 👋 Tenemos dos marcas para ti:\n\n🫐 *Baya Baya* — arándanos frescos\n🍯 *Oko* — miel pura\n\n¿Qué quieres pedir hoy?', [
+  await sendButtons(to, '¡Hola! 👋 Tenemos dos marcas para ti:\n\n🫐 *Baya Baya Berries* — arándanos frescos\n🍯 *Oko Honey* — miel 100% natural\n\n¿Qué quieres pedir hoy?', [
     { id: 'brand_arandanos', title: '🫐 Arándanos' },
     { id: 'brand_miel', title: '🍯 Miel' },
     { id: 'menu_carrito', title: 'Ver mi carrito' },
@@ -74,12 +74,12 @@ async function handleIncomingMessage(from, message) {
   // Ice breakers: los mensajes que aparecen la primera vez que alguien
   // abre el chat. Al tocarlos, WhatsApp los manda como texto normal,
   // por eso los detectamos comparando el texto exacto.
-  if (text.includes('arándanos de baya baya') || text.includes('arandanos de baya baya')) {
+  if (text.includes('arándanos baya baya') || text.includes('arandanos baya baya')) {
     session.step = 'choosing_category';
     saveSession(from, session);
     return showCatalog(from, 'arandanos');
   }
-  if (text.includes('miel de oko')) {
+  if (text.includes('miel oko')) {
     session.step = 'choosing_category';
     saveSession(from, session);
     return showCatalog(from, 'miel');
@@ -152,10 +152,26 @@ async function handleIncomingMessage(from, message) {
 
   if (session.step === 'awaiting_address') {
     session.address = message.text?.body || '';
+    session.step = 'awaiting_shipping_city';
     saveSession(from, session);
+    return sendButtons(from, '¿Tu entrega es dentro de la ciudad de Medellín?', [
+      { id: 'shipping_medellin', title: 'Sí, en Medellín' },
+      { id: 'shipping_otra', title: 'No, otra ciudad' },
+    ]);
+  }
 
-    const total = cartTotal(session.cart);
-    await sendText(from, `Gracias, ya casi terminamos. Total a pagar: *${formatCOP(total)}*\nGenerando tu link de pago... ⏳`);
+  if (session.step === 'awaiting_shipping_city' && (buttonId === 'shipping_medellin' || buttonId === 'shipping_otra')) {
+    const shippingCost = buttonId === 'shipping_medellin' ? SHIPPING_MEDELLIN : 0;
+    const subtotal = cartTotal(session.cart);
+    const total = subtotal + shippingCost;
+
+    let resumen = `Subtotal productos: ${formatCOP(subtotal)}\n`;
+    resumen += shippingCost > 0
+      ? `Domicilio (Medellín): ${formatCOP(shippingCost)}\n`
+      : `Domicilio: a coordinar con el transportador\n`;
+    resumen += `\n*Total a pagar: ${formatCOP(total)}*`;
+
+    await sendText(from, `Gracias, ya casi terminamos.\n\n${resumen}\nGenerando tu link de pago... ⏳`);
 
     try {
       const paymentUrl = await createPaymentLink({
