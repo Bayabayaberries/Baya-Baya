@@ -13,6 +13,11 @@ app.get('/webhook', (req, res) => {
   const token = req.query['hub.verify_token'];
   const challenge = req.query['hub.challenge'];
 
+  // Registro temporal para diagnosticar problemas de verificación.
+  // Puedes borrar estas 2 líneas de console.log una vez que todo funcione.
+  console.log('Intento de verificación recibido. Modo:', mode, '| Token recibido:', JSON.stringify(token));
+  console.log('Token esperado (de la variable de entorno):', JSON.stringify(process.env.WHATSAPP_VERIFY_TOKEN));
+
   if (mode === 'subscribe' && token === process.env.WHATSAPP_VERIFY_TOKEN) {
     console.log('Webhook verificado correctamente ✅');
     return res.status(200).send(challenge);
