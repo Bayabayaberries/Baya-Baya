@@ -1,6 +1,6 @@
 const { catalog, findProduct, formatCOP, SHIPPING_MEDELLIN } = require('./catalog');
 const { getSession, saveSession, resetSession } = require('./session');
-const { sendText, sendButtons, sendList } = require('./whatsapp');
+const { sendText, sendButtons, sendList, sendTemplate } = require('./whatsapp');
 const { createPaymentLink } = require('./wompi');
 
 // Número donde TÚ recibes el aviso de cada pedido nuevo.
@@ -95,7 +95,7 @@ async function handleIncomingMessage(from, message) {
   }
   if (buttonId === 'menu_asesor') {
     await sendText(from, 'Listo, en un momento te escribe alguien de nuestro equipo por este mismo chat 🙌');
-    await sendText(OWNER_NOTIFICATION_PHONE, `🙋 *Un cliente quiere hablar con alguien*\n\nCliente: wa.me/${from}\n\nEscríbele directo por WhatsApp para ayudarlo.`);
+    await sendTemplate(OWNER_NOTIFICATION_PHONE, 'aviso_asesor', 'es_CO', [from]);
     return;
   }
   if (buttonId === 'vaciar_carrito') {
@@ -170,15 +170,19 @@ async function handleIncomingMessage(from, message) {
       });
       await sendText(from, `Aquí está tu link de pago seguro (Wompi) 👇\n${paymentUrl}\n\nApenas se confirme el pago, preparamos tu pedido para *${session.address}*.`);
 
-      // Le avisamos al dueño del negocio que llegó un pedido nuevo.
-      let avisoDueno = `🔔 *Nuevo pedido — Baya Baya*\n\n`;
-      avisoDueno += `Cliente: wa.me/${from}\n\n`;
+      // Le avisamos al dueño del negocio que llegó un pedido nuevo,
+      // usando una plantilla aprobada (para que llegue sin importar
+      // si hace más de 24h que no te escribes con el bot).
+      let detalleProductos = '';
       for (const [id, qty] of Object.entries(session.cart)) {
         const p = findProduct(id);
-        avisoDueno += `• ${p.name} x${qty} — ${formatCOP(p.price * qty)}\n`;
+        detalleProductos += `${p.name} x${qty}, `;
       }
-      avisoDueno += `\n${resumen}\n\n📍 Dirección: ${session.address}`;
-      await sendText(OWNER_NOTIFICATION_PHONE, avisoDueno);
+      await sendTemplate(OWNER_NOTIFICATION_PHONE, 'aviso_pedido', 'es', [
+        from,
+        formatCOP(total),
+        `${detalleProductos}${session.address}`,
+      ]);
     } catch (err) {
       console.error('Error generando link de Wompi:', err);
       await sendText(from, 'Tuvimos un problema generando el link de pago automático. En un momento un asesor te contacta para coordinar el pago 🙏');
