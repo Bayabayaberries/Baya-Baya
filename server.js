@@ -1,9 +1,20 @@
 require('dotenv').config();
 const express = require('express');
+const crypto = require('crypto');
 const { handleIncomingMessage } = require('./src/bot');
 
 const app = express();
 app.use(express.json());
+
+// Permite que la tienda web (alojada en otro sitio, ej. GoDaddy) le pida
+// la firma a este servidor. Si luego quieres restringirlo a tu dominio
+// real, cambia el '*' por tu URL, ej: 'https://www.bayabaya.com'
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+});
 
 // 1) VERIFICACIÓN DEL WEBHOOK
 // Meta llama a esta ruta UNA VEZ, cuando configuras el webhook en el
@@ -31,6 +42,10 @@ app.post('/webhook', async (req, res) => {
   // Respondemos 200 de inmediato: Meta reintenta si no respondes rápido.
   res.sendStatus(200);
 
+  // Registro temporal para diagnosticar: muestra TODO lo que llega,
+  // aunque no sea un mensaje de texto. Bórralo cuando todo funcione.
+  console.log('📩 Webhook POST recibido:', JSON.stringify(req.body, null, 2));
+
   try {
     const entry = req.body.entry?.[0];
     const change = entry?.changes?.[0];
@@ -42,6 +57,27 @@ app.post('/webhook', async (req, res) => {
     await handleIncomingMessage(from, message);
   } catch (err) {
     console.error('Error procesando el mensaje entrante:', err);
+  }
+});
+
+// 3) FIRMA DE INTEGRIDAD PARA LA TIENDA WEB
+// La tienda web le pide esto al servidor ANTES de abrir el widget de Wompi.
+// El "secreto de integridad" nunca debe estar en el código de la tienda
+// (visible para cualquiera), por eso este cálculo vive aquí, en el servidor.
+app.post('/api/wompi-signature', (req, res) => {
+  try {
+    const { reference, amountInCents, currency } = req.body;
+    if (!reference || !amountInCents || !currency) {
+      return res.status(400).json({ error: 'Faltan datos: reference, amountInCents o currency' });
+    }
+
+    const cadena = `${reference}${amountInCents}${currency}${process.env.WOMPI_INTEGRITY_SECRET}`;
+    const signature = crypto.createHash('sha256').update(cadena).digest('hex');
+
+    res.json({ signature });
+  } catch (err) {
+    console.error('Error generando firma de Wompi:', err);
+    res.status(500).json({ error: 'No se pudo generar la firma' });
   }
 });
 
