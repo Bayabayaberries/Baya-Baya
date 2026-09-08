@@ -3,6 +3,11 @@ const { getSession, saveSession, resetSession } = require('./session');
 const { sendText, sendButtons, sendList } = require('./whatsapp');
 const { createPaymentLink } = require('./wompi');
 
+// Número donde TÚ recibes el aviso de cada pedido nuevo.
+// Este número necesita tener WhatsApp o WhatsApp Business normal
+// instalado — no puede ser el mismo número conectado a la API.
+const OWNER_NOTIFICATION_PHONE = '573247093735';
+
 async function showMainMenu(to) {
   await sendButtons(to, '¡Hola! 👋 Bienvenido a *Baya Baya Berries* 🫐\n\nArándanos frescos, directo del cultivo a tu mesa.\n\n¿Qué quieres hacer?', [
     { id: 'menu_catalogo', title: 'Ver catálogo' },
@@ -163,6 +168,16 @@ async function handleIncomingMessage(from, message) {
         customerPhone: from,
       });
       await sendText(from, `Aquí está tu link de pago seguro (Wompi) 👇\n${paymentUrl}\n\nApenas se confirme el pago, preparamos tu pedido para *${session.address}*.`);
+
+      // Le avisamos al dueño del negocio que llegó un pedido nuevo.
+      let avisoDueno = `🔔 *Nuevo pedido — Baya Baya*\n\n`;
+      avisoDueno += `Cliente: wa.me/${from}\n\n`;
+      for (const [id, qty] of Object.entries(session.cart)) {
+        const p = findProduct(id);
+        avisoDueno += `• ${p.name} x${qty} — ${formatCOP(p.price * qty)}\n`;
+      }
+      avisoDueno += `\n${resumen}\n\n📍 Dirección: ${session.address}`;
+      await sendText(OWNER_NOTIFICATION_PHONE, avisoDueno);
     } catch (err) {
       console.error('Error generando link de Wompi:', err);
       await sendText(from, 'Tuvimos un problema generando el link de pago automático. En un momento un asesor te contacta para coordinar el pago 🙏');
