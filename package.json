@@ -1,7 +1,7 @@
 {
   "name": "baya-baya-bot",
   "version": "1.0.0",
-  "description": "Bot de WhatsApp para vender miel y arándanos",
+  "description": "Bot de WhatsApp para vender arándanos Baya Baya",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
