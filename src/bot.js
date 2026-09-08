@@ -12,7 +12,7 @@ async function showMainMenu(to) {
 }
 
 async function showCatalog(to, categoryKey) {
-  // Si viene un categoryKey (arandanos/miel), mostramos solo esa marca.
+  // Si viene un categoryKey (por ahora solo "arandanos"), mostramos esa categoría.
   // Si no viene, mostramos todo (por ejemplo cuando escriben "catálogo" directamente).
   const categoriesToShow = categoryKey ? { [categoryKey]: catalog[categoryKey] } : catalog;
   const sections = Object.values(categoriesToShow).map((category) => ({
