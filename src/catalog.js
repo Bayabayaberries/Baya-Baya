@@ -7,7 +7,7 @@ const catalog = {
     brand: 'Baya Baya Berries',
     items: [
       { id: 'ar_125', name: 'Arándanos 125g', price: 9000 },
-      { id: 'ar_250', name: 'Arándanos 250g', price: 12600 },
+      { id: 'ar_250', name: 'Arándanos 250g', price: 18000 },
       { id: 'ar_500', name: 'Arándanos 500g', price: 35000 },
     ],
   },
