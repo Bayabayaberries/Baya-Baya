@@ -4,10 +4,10 @@ const { sendText, sendButtons, sendList } = require('./whatsapp');
 const { createPaymentLink } = require('./wompi');
 
 async function showMainMenu(to) {
-  await sendButtons(to, '¡Hola! 👋 Tenemos dos marcas para ti:\n\n🫐 *Baya Baya Berries* — arándanos frescos\n🍯 *Oko Honey* — miel 100% natural\n\n¿Qué quieres pedir hoy?', [
-    { id: 'brand_arandanos', title: '🫐 Arándanos' },
-    { id: 'brand_miel', title: '🍯 Miel' },
+  await sendButtons(to, '¡Hola! 👋 Bienvenido a *Baya Baya Berries* 🫐\n\nArándanos frescos, directo del cultivo a tu mesa.\n\n¿Qué quieres hacer?', [
+    { id: 'menu_catalogo', title: 'Ver catálogo' },
     { id: 'menu_carrito', title: 'Ver mi carrito' },
+    { id: 'menu_asesor', title: 'Hablar con alguien' },
   ]);
 }
 
@@ -71,30 +71,13 @@ async function handleIncomingMessage(from, message) {
     return showMainMenu(from);
   }
 
-  // Ice breakers: los mensajes que aparecen la primera vez que alguien
-  // abre el chat. Al tocarlos, WhatsApp los manda como texto normal,
-  // por eso los detectamos comparando el texto exacto.
+  // Ice breaker: el mensaje que aparece la primera vez que alguien
+  // abre el chat. Al tocarlo, WhatsApp lo manda como texto normal,
+  // por eso lo detectamos comparando el texto.
   if (text.includes('arándanos baya baya') || text.includes('arandanos baya baya')) {
     session.step = 'choosing_category';
     saveSession(from, session);
-    return showCatalog(from, 'arandanos');
-  }
-  if (text.includes('miel oko')) {
-    session.step = 'choosing_category';
-    saveSession(from, session);
-    return showCatalog(from, 'miel');
-  }
-
-  // Botones del menú principal, ya eligiendo marca
-  if (buttonId === 'brand_arandanos') {
-    session.step = 'choosing_category';
-    saveSession(from, session);
-    return showCatalog(from, 'arandanos');
-  }
-  if (buttonId === 'brand_miel') {
-    session.step = 'choosing_category';
-    saveSession(from, session);
-    return showCatalog(from, 'miel');
+    return showCatalog(from);
   }
 
   if (text === 'catálogo' || text === 'catalogo' || buttonId === 'menu_catalogo') {
