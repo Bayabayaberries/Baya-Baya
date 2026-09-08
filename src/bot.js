@@ -95,6 +95,7 @@ async function handleIncomingMessage(from, message) {
   }
   if (buttonId === 'menu_asesor') {
     await sendText(from, 'Listo, en un momento te escribe alguien de nuestro equipo por este mismo chat 🙌');
+    await sendText(OWNER_NOTIFICATION_PHONE, `🙋 *Un cliente quiere hablar con alguien*\n\nCliente: wa.me/${from}\n\nEscríbele directo por WhatsApp para ayudarlo.`);
     return;
   }
   if (buttonId === 'vaciar_carrito') {
