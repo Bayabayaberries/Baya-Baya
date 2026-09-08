@@ -11,17 +11,6 @@ const catalog = {
       { id: 'ar_500', name: 'Arándanos 500g', price: 35000 },
     ],
   },
-  miel: {
-    label: '🍯 Miel — Oko Honey',
-    brand: 'Oko Honey',
-    items: [
-      { id: 'mi_pura_350', name: 'Miel Pura 350g', price: 25000 },
-      { id: 'mi_pura_482', name: 'Miel Pura 482g', price: 31000 },
-      { id: 'mi_picante_bajo', name: 'Miel Picante Bajo 350g', price: 27000 },
-      { id: 'mi_picante_medio', name: 'Miel Picante Medio 350g', price: 27000 },
-      { id: 'mi_picante_alto', name: 'Miel Picante Alto 350g', price: 27000 },
-    ],
-  },
 };
 
 // Costo del domicilio si la entrega es dentro de Medellín.
