@@ -6,7 +6,7 @@ const catalog = {
     label: '🫐 Baya Baya Berries',
     brand: 'Baya Baya Berries',
     items: [
-      { id: 'ar_125', name: 'Arándanos 125g', price: 9000 },
+      { id: 'ar_125', name: 'Arándanos 125g', price: 1000 },
       { id: 'ar_250', name: 'Arándanos 250g', price: 18000 },
       { id: 'ar_500', name: 'Arándanos 500g', price: 35000 },
     ],
@@ -15,7 +15,7 @@ const catalog = {
 
 // Costo del domicilio si la entrega es dentro de Medellín.
 // Fuera de Medellín, por ahora no se cobra automático (coordinar aparte).
-const SHIPPING_MEDELLIN = 5000;
+const SHIPPING_MEDELLIN = 500;
 
 function findProduct(id) {
   for (const category of Object.values(catalog)) {
