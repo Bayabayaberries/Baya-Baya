@@ -64,4 +64,27 @@ async function sendList(to, bodyText, buttonLabel, sections) {
   });
 }
 
-module.exports = { sendText, sendButtons, sendList };
+// Mensaje con PLANTILLA aprobada — la única forma de escribirle a alguien
+// que no te ha escrito en las últimas 24 horas (ej: avisarte a ti mismo
+// que un cliente quiere hablar con un asesor).
+async function sendTemplate(to, templateName, languageCode, parameters = []) {
+  return callGraphAPI({
+    messaging_product: 'whatsapp',
+    to,
+    type: 'template',
+    template: {
+      name: templateName,
+      language: { code: languageCode },
+      components: parameters.length
+        ? [
+            {
+              type: 'body',
+              parameters: parameters.map((text) => ({ type: 'text', text })),
+            },
+          ]
+        : [],
+    },
+  });
+}
+
+module.exports = { sendText, sendButtons, sendList, sendTemplate };
