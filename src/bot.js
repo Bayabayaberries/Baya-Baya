@@ -2,6 +2,7 @@ const { catalog, findProduct, formatCOP, SHIPPING_MEDELLIN } = require('./catalo
 const { getSession, saveSession, resetSession } = require('./session');
 const { sendText, sendButtons, sendList, sendTemplate } = require('./whatsapp');
 const { createPaymentLink } = require('./wompi');
+const { saveOrderToSheet } = require('./sheets');
 
 // Número donde TÚ recibes el aviso de cada pedido nuevo.
 // Este número necesita tener WhatsApp o WhatsApp Business normal
@@ -183,6 +184,15 @@ async function handleIncomingMessage(from, message) {
         formatCOP(total),
         `${detalleProductos}${session.address}`,
       ]);
+
+      // Guardamos el pedido como una fila nueva en la hoja de Google Sheets.
+      await saveOrderToSheet({
+        cliente: from,
+        productos: detalleProductos,
+        total: formatCOP(total),
+        direccion: session.address,
+        domicilioMedellin: shippingCost > 0,
+      });
     } catch (err) {
       console.error('Error generando link de Wompi:', err);
       await sendText(from, 'Tuvimos un problema generando el link de pago automático. En un momento un asesor te contacta para coordinar el pago 🙏');
