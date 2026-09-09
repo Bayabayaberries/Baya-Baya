@@ -2,7 +2,7 @@
 // Script publicado como "aplicación web" (ver google-apps-script.js para
 // las instrucciones de cómo configurarlo).
 
-async function saveOrderToSheet({ nombre, whatsapp, productos, total, direccion, zona }) {
+async function saveOrderToSheet({ nombre, whatsapp, productos, total, direccion, zona, referencia }) {
   const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
   if (!webhookUrl) {
     console.log('GOOGLE_SHEETS_WEBHOOK_URL no configurada, se omite el guardado en Sheets.');
@@ -26,6 +26,7 @@ async function saveOrderToSheet({ nombre, whatsapp, productos, total, direccion,
         estimado: total,
         proximaEntrega: '',
         estado: 'Pendiente',
+        referencia,
       }),
     });
   } catch (err) {
