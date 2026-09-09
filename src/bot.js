@@ -138,6 +138,13 @@ async function handleIncomingMessage(from, message, profileName) {
     if (Object.keys(session.cart).length === 0) {
       return sendText(from, 'Tu carrito está vacío. Escribe *catálogo* para agregar productos.');
     }
+    session.step = 'awaiting_name';
+    saveSession(from, session);
+    return sendText(from, '✍️ Antes de continuar, ¿a nombre de quién hacemos el envío?');
+  }
+
+  if (session.step === 'awaiting_name') {
+    session.customerName = (message.text?.body || '').trim();
     session.step = 'awaiting_address';
     saveSession(from, session);
     return sendText(from, '📍 Perfecto, ¿cuál es la dirección de entrega? (barrio, calle/carrera, ciudad)');
@@ -167,12 +174,15 @@ async function handleIncomingMessage(from, message, profileName) {
     await sendText(from, `Gracias, ya casi terminamos.\n\n${resumen}\nGenerando tu link de pago... ⏳`);
 
     let paymentUrl;
+    let paymentLinkId;
     try {
-      paymentUrl = await createPaymentLink({
+      const payment = await createPaymentLink({
         amountInCents: total * 100,
         reference: `pedido-${from}-${Date.now()}`,
         customerPhone: from,
       });
+      paymentUrl = payment.url;
+      paymentLinkId = payment.linkId;
       await sendText(from, `Aquí está tu link de pago seguro (Wompi) 👇\n${paymentUrl}\n\nApenas se confirme el pago, preparamos tu pedido para *${session.address}*.`);
     } catch (err) {
       console.error('Error generando link de Wompi:', err);
@@ -210,6 +220,7 @@ async function handleIncomingMessage(from, message, profileName) {
         total: formatCOP(total),
         direccion: session.address,
         zona: shippingCost > 0 ? 'Medellín' : 'Otra ciudad',
+        referencia: paymentLinkId || '',
       });
     } catch (err) {
       console.error('Error guardando el pedido en Google Sheets:', err);
