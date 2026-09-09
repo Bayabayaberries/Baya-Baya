@@ -59,8 +59,11 @@ async function showCart(to, session) {
   ]);
 }
 
-async function handleIncomingMessage(from, message) {
+async function handleIncomingMessage(from, message, profileName) {
   const session = getSession(from);
+  if (profileName && !session.customerName) {
+    session.customerName = profileName;
+  }
   const text = (message.text?.body || '').trim().toLowerCase();
   const buttonId = message.interactive?.button_reply?.id || message.interactive?.list_reply?.id || null;
 
@@ -163,39 +166,53 @@ async function handleIncomingMessage(from, message) {
 
     await sendText(from, `Gracias, ya casi terminamos.\n\n${resumen}\nGenerando tu link de pago... ⏳`);
 
+    let paymentUrl;
     try {
-      const paymentUrl = await createPaymentLink({
+      paymentUrl = await createPaymentLink({
         amountInCents: total * 100,
         reference: `pedido-${from}-${Date.now()}`,
         customerPhone: from,
       });
       await sendText(from, `Aquí está tu link de pago seguro (Wompi) 👇\n${paymentUrl}\n\nApenas se confirme el pago, preparamos tu pedido para *${session.address}*.`);
+    } catch (err) {
+      console.error('Error generando link de Wompi:', err);
+      await sendText(from, 'Tuvimos un problema generando el link de pago automático. En un momento un asesor te contacta para coordinar el pago 🙏');
+    }
 
-      // Le avisamos al dueño del negocio que llegó un pedido nuevo,
-      // usando una plantilla aprobada (para que llegue sin importar
-      // si hace más de 24h que no te escribes con el bot).
-      let detalleProductos = '';
-      for (const [id, qty] of Object.entries(session.cart)) {
-        const p = findProduct(id);
-        detalleProductos += `${p.name} x${qty}, `;
-      }
+    // Armamos el detalle de productos, lo usan tanto el aviso como Sheets.
+    let detalleProductos = '';
+    for (const [id, qty] of Object.entries(session.cart)) {
+      const p = findProduct(id);
+      detalleProductos += `${p.name} x${qty}, `;
+    }
+
+    // Le avisamos al dueño del negocio que llegó un pedido nuevo, usando
+    // una plantilla aprobada. Esto va en su PROPIO try/catch: si falla
+    // (por ejemplo, si la plantilla aún no está aprobada por Meta), no
+    // debe afectar el mensaje de pago que el cliente ya recibió.
+    try {
       await sendTemplate(OWNER_NOTIFICATION_PHONE, 'aviso_pedido', 'es', [
         from,
         formatCOP(total),
         `${detalleProductos}${session.address}`,
       ]);
+    } catch (err) {
+      console.error('Error mandando el aviso de pedido al dueño:', err);
+    }
 
-      // Guardamos el pedido como una fila nueva en la hoja de Google Sheets.
+    // Guardamos el pedido en Google Sheets, también en su propio try/catch
+    // por la misma razón: que no dependa de que lo anterior haya salido bien.
+    try {
       await saveOrderToSheet({
-        cliente: from,
+        nombre: session.customerName || '',
+        whatsapp: from,
         productos: detalleProductos,
         total: formatCOP(total),
         direccion: session.address,
-        domicilioMedellin: shippingCost > 0,
+        zona: shippingCost > 0 ? 'Medellín' : 'Otra ciudad',
       });
     } catch (err) {
-      console.error('Error generando link de Wompi:', err);
-      await sendText(from, 'Tuvimos un problema generando el link de pago automático. En un momento un asesor te contacta para coordinar el pago 🙏');
+      console.error('Error guardando el pedido en Google Sheets:', err);
     }
 
     resetSession(from);
