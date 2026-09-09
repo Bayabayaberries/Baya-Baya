@@ -32,8 +32,13 @@ async function createPaymentLink({ amountInCents, reference, customerPhone }) {
   }
 
   const data = await res.json();
-  // El id que devuelve Wompi se usa para construir la URL pública del link
-  return `https://checkout.wompi.co/l/${data.data.id}`;
+  const linkId = data.data.id;
+  // El id que devuelve Wompi se usa para construir la URL pública del link,
+  // y también para poder identificar después el pago que se haga con él.
+  return {
+    url: `https://checkout.wompi.co/l/${linkId}`,
+    linkId,
+  };
 }
 
 module.exports = { createPaymentLink };
